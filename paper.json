@@ -1,0 +1,21 @@
+[
+{"parent1":"8", "parent2":"3"},
+{"parent":"1", "name": "WorldMap", "author": "", "YEAR": "1980", "vPosition": "5", "children":"none"},
+{"parent":"1", "name": "Band1987", "author": "", "YEAR": "1980", "vPosition": "15", "children":"none"},
+{"parent":"1", "name": "ETOPO5", "author": "Edwards, 1986", "YEAR": "1986", "vPosition": "40",
+		"children":[
+		{"parent":"2", "name": "TRIP", "author": "Oki and Sud., 1998", "YEAR": "1998", "vPosition": "30"},
+		{"parent":"2"}
+		]},
+{"parent":"1", "name": "RWS1995", "author": "", "YEAR": "1995", "vPosition": "50","children":"none"},
+{"parent":"1", "name": "GLOBALDEM5", "author": "GETTECH, 1995", "YEAR": "1995", "vPosition": "60","children":"none"},
+{"parent":"1", "name": "GTOPO30", "author": "", "YEAR": "1996", "vPosition": "90","children":"none"},
+{"parent":"1", "name": "NHDPlus", "author": "", "YEAR": "2007", "vPosition": "150","children":"none"},
+{"parent":"1", "name": "SRTM30", "author": "Farr and Kobrick, 2000", "YEAR": "2000", "vPosition": "100", "children":[
+		{"parent":"2", "name": "GDBD", "author": "Masutomi et al., 2009", "YEAR": "2009", "vPosition": "110"}
+		]},
+{"parent":"1", "name": "SRTM3", "author": "Farr and Kobrick, 2000", "YEAR": "2000", "vPosition": "120","children":[
+		{"parent":"2", "name": "HydroSHEDS", "author": "Lehner et al., 2009", "YEAR": "2009", "vPosition": "130"}
+		]},
+{"parent":"1", "name": "DDM30", "author": "Döll and Lehner, 2002", "YEAR": "2002", "vPosition": "140","children":"none"}
+]

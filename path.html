@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- 軸の属性を決めている。特にfill:none;にしないと真っ黒になる。-->
+    <style>
+        .axis text {
+          font-size: 10px;
+          font-family: 'arial-black';
+        }
+ 
+        .axis path {
+        /*
+        fillとopacityで半透明な背景色。
+        */
+          fill: White;
+          opacity: 0.1;
+          stroke: #000;
+          stroke-width: 1;
+          shape-rendering: crispEdges;
+        }
+ 
+        .axis line {
+          stroke: #000;
+          stroke-width: 1;
+          shape-rendering: crispEdges;
+        }
+ 
+        .line {
+          fill: none;
+          opacity:0.7;
+          stroke-width: 5px;
+        }
+        .tick line{
+          opacity: 0.2;
+        }
+    </style>
+</head>
+<body>    
+ 
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+ 
+    <script>
+//general setting
+var startYear = 1980
+var endYear = 2016
+var slope = 2
+
+ //background definition
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 1000 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+ 
+var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+var xScale = d3.time.scale()
+                .domain([
+                  new Date(startYear,0,1),
+                  new Date(endYear,0,1)
+                  ])
+                .range([0,width])
+ 
+var yScale = d3.scale.linear()
+                .domain([0,160])
+                .range([height,0]);
+ 
+var colorCategoryScale = d3.scale.category10();
+ 
+var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom")
+                .ticks(d3.time.year, 5)
+                .tickFormat("")
+                .innerTickSize(-height)
+                .outerTickSize(0)
+                .tickPadding(10);
+
+
+ var xAxis2 = d3.svg.axis()
+                .scale(xScale)
+                .orient("top")
+                .ticks(d3.time.year, 5)
+                .tickFormat("")
+                .innerTickSize(-height)
+                .outerTickSize(0)
+                .tickPadding(10);
+
+ var xAxis3 = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom")
+                .ticks(d3.time.year, 1)
+                .tickFormat(d3.time.format('%Y'))
+                .tickPadding(10);
+
+
+var yAxis = d3.svg.axis()
+                .ticks(5)
+                .scale(yScale)
+                .orient("left")
+                .innerTickSize(0)
+                .outerTickSize(0)
+                .tickFormat("");
+
+//
+var dataYears = function(i, endYear) {
+  d3.json("paper.json",function(data){
+  var  dataStartYear = Number(data[i].YEAR);
+  var  dataheight=Number(data[i].vPosition);
+  var  childs=data[i].children;
+  var  dataStart = new Date(dataStartYear,0,1);
+  var  end = new Date(endYear,0,1);
+  var  paper=[
+    {"YEAR": dataStart, "vPos": dataheight},
+    {"YEAR": end, "vPos": dataheight}
+    ];
+  //console.log(data[i].children[0]);
+  var xPos=xScale(dataStart);
+  //console.log(xPos);
+  var yPos=yScale(dataheight);
+  //console.log(yPos);
+  var line=d3.svg.line()
+        .x(function(d) { return xScale(d["YEAR"]); })
+        .y(function(d) { return yScale(d["vPos"]); })
+        .interpolate("linear");
+  svg.append("path")
+        .datum(paper)
+        .attr("class","line")
+        .attr("d",line)
+        .attr("stroke","black");
+  var idname = data[i].name
+  svg.append("circle")
+          .attr("r", 5)
+          .attr("cx", Number(xPos))
+          .attr("cy", Number(yPos))
+          .attr("fill", "White")
+          .attr("stroke-width",1.5)
+          .attr("stroke", "DarkGreen")
+          .attr("id",idname); 
+   /*var test = d3.select("#"+idname).attr("cy")
+   console.log(test)*/
+  svg.append("text")
+          .attr("x", Number(xPos)+20)
+          .attr("y", Number(yPos)+20)
+          .attr("font-family","Impact,sans-serif")
+          .attr("font-size", "15px")
+          .text(data[i].name);
+  svg.append("text")
+          .attr("x", Number(xPos)+20)
+          .attr("y", Number(yPos)+30)
+          .attr("font-style", "italic")
+          .attr("font-size", "10px")
+          .text(data[i].author);
+
+  if (childs != "none"){
+  //console.log(childs.length)
+  for(j=0;j<childs.length;j++){
+  var child_Year = childs[0].YEAR;
+  var childidname = childs[0].name
+  //var child_Year_Lag = Number(child_Year)+Number(slope)
+  var child_Year_Lag = Number(child_Year)
+  //console.log(child_Year_Lag)
+  var child_height = childs[0].vPosition;
+  var child_Start = new Date(child_Year, 0, 1);
+  var child_Start_Lag = new Date(child_Year_Lag, 0, 1);
+
+  var pipe=[
+  {"hrzntl":child_Start, "vrtcl":dataheight},
+  {"hrzntl":child_Start_Lag, "vrtcl":child_height}
+  ];
+
+  var child_paper = [
+  {"YEAR": child_Start_Lag, "vPos": child_height},
+  {"YEAR": end, "vPos": child_height}
+  ];
+
+  var child_xPos=xScale(child_Start);
+  var child_xPos_Lag=xScale(child_Start_Lag);
+  var child_yPos=yScale(child_height);
+
+  var line=d3.svg.line()
+        .x(function(d) { return xScale(d["YEAR"]); })
+        .y(function(d) { return yScale(d["vPos"]); })
+        .interpolate("linear");
+  var pipeLine=d3.svg.line()
+        .x(function(d){return xScale(d["hrzntl"]); })
+        .y(function(d){return yScale(d["vrtcl"]); })
+        .interpolate("linear");
+  svg.append("path")
+        .datum(child_paper)
+        .attr("class","line")
+        .attr("d",line)
+        .attr("stroke", "DarkGreen");
+  svg.append("path")
+        .datum(pipe)
+        .attr("class","line")
+        .attr("d", pipeLine)
+        .attr("stroke","DarkGreen");
+  svg.append("circle")
+          .attr("r", 5)
+          .attr("cx", Number(child_xPos))
+          .attr("cy", Number(yPos))
+          .attr("fill", "White")
+          .attr("stroke-width",1.5)
+          .attr("stroke", "DarkGreen");
+  svg.append("circle")
+          .attr("r", 2.5)
+          .attr("cx", Number(child_xPos_Lag))
+          .attr("cy", Number(child_yPos))
+          .attr("fill", "DarkGreen")
+          .attr("id",childidname);
+  svg.append("text")
+          .attr("x", Number(child_xPos_Lag)+20)
+          .attr("y", Number(child_yPos)+20)
+          .attr("font-family","Impact,sans-serif")
+          .attr("font-size", "15px")
+          .text(childs[0].name);
+  svg.append("text")
+          .attr("x", Number(child_xPos_Lag)+20)
+          .attr("y", Number(child_yPos)+30)
+          .attr("font-style", "italic")
+          .attr("font-size", "10px")
+          .text(childs[0].author);
+  }
+  }
+
+  var paperdata=[{"name":"TRIP", "author":"Oki et al., 1999", "YEAR":"1999","Lag":"0","i":"1"},
+                {"name":"GDBD", "author":"Yamazaki et al., 2011", "YEAR":"2011","Lag":"0","i":"2"},
+                {"name":"WorldMap", "author":"vörösmarty et al., 1989","YEAR":"1989","Lag":"0","i":"3"},
+                {"name":"WorldMap", "author":"Russel and Miller, 1990","YEAR":"1990","Lag":"0","i":"4"},
+                {"name":"WorldMap", "author":"Liston et al., 1990","YEAR":"1994","Lag":"0","i":"5"},
+                {"name":"WorldMap", "author":"Miller et al., 1994","YEAR":"1994","Lag":"10","i":"6"},
+                {"name":"WorldMap", "author":"Marengo et al., 1994","YEAR":"1994","Lag":"20","i":"7"},
+                {"name":"WorldMap", "author":"Sausen et al., 1994","YEAR":"1994","Lag":"30","i":"8"},
+                {"name":"WorldMap", "author":"Kanae et al., 1995","YEAR":"1995","Lag":"0","i":"9"},
+                {"name":"Band1987", "author":"Orlandini and Rosso, 1996","YEAR":"1996","Lag":"0","i":"10"},
+                {"name":"WorldMap", "author":"Coe, 1997","YEAR":"1997","Lag":"0","i":"11"},
+                {"name":"WorldMap", "author":"vörösmarty and Moore., 1991","YEAR":"1991","Lag":"0","i":"12"},
+                {"name":"WorldMap", "author":"Costa and Foley., 1997","YEAR":"1997","Lag":"10","i":"13"},
+                {"name":"TRIP", "author":"Oki et al., 1997","YEAR":"1997","Lag":"20","i":"14"},
+                {"name":"ETOPO5", "author":"Coe, 1998","YEAR":"1998","Lag":"0","i":"15"},
+                {"name":"GLOBALDEM5", "author":"Coe, 1998","YEAR":"1998","Lag":"0","i":"16"},
+                {"name":"RWS1995", "author":"Bates and Roo, 2000","YEAR":"2000","Lag":"0","i":"17"},
+                {"name":"GTOPO30", "author":"Oliviera et al., 2000","YEAR":"2000","Lag":"0","i":"18"},
+                {"name":"GLOBALDEM5", "author":"Coe et al, 2002","YEAR":"2002","Lag":"0","i":"19"},
+                {"name":"DDM30", "author":"Döll et al., 2003","YEAR":"2003","Lag":"0","i":"20"},
+                {"name":"GTOPO30", "author":"Colischonn et al., 2007","YEAR":"2007","Lag":"0","i":"21"},
+                {"name":"SRTM3", "author":"Coe et al., 2008","YEAR":"2008","Lag":"0","i":"22"},
+                {"name":"TRIP", "author":"Decharme et al., 2008","YEAR":"2008","Lag":"10","i":"23"},
+                {"name":"SRTM3", "author":"Trigg et al., 2009","YEAR":"2009","Lag":"0","i":"24"},
+                {"name":"NHDPlus", "author":"David et al., 2011","YEAR":"2011","Lag":"0","i":"25"},
+                {"name":"GDBD", "author":"Yamazaki et al., 2011","YEAR":"2011","Lag":"10","i":"26"},
+                {"name":"SRTM3", "author":"Paiva et al., 2011","YEAR":"2011","Lag":"20","i":"27"},
+                {"name":"TRIP", "author":"Decharme et al., 2011","YEAR":"2011","Lag":"30","i":"28"},
+                {"name":"HydroSHEDS", "author":"Paiva et al., 2013","YEAR":"2013","Lag":"0","i":"29"},
+                {"name":"TRIP", "author":"Arora and Boer, 1999","YEAR":"1999","Lag":"0","i":"30"}
+                
+                
+                
+
+  ];
+
+  svg.selectAll("text.hoge")
+     .data(paperdata)
+     .enter()
+     .append("text")
+     .attr("x", function(d){
+       var start = new Date(Number(d.YEAR)-1, 0, 1);
+       var xPos = xScale(start)
+       //console.log(xPos)
+       return xPos
+     })
+     .attr("y", function(d){
+       var id = d.name;
+       var yPos = d3.select("#"+id).attr("cy")
+       //lag=Number(d.Lag)
+       //yPos=Number(yPos)-20+lag
+       yPos=Number(yPos)-10
+       return yPos
+     })
+     .text(function(d){
+      profile = String(d.author)
+      console.log(profile)
+      return profile
+
+     })
+     .attr("style","background-color:green")
+     .style("opacity",0)
+     .attr("id",function(d){
+       id="text"+d.i
+       return id
+     });
+
+  svg.selectAll("circle.hoge")
+     .data(paperdata)
+     .enter()
+     .append("circle")
+     .attr("r", 4)
+     .attr("cx", function(d){
+        var lag=Number(d.Lag)/5
+        var start = new Date(Number(d.YEAR), 0+lag, 1);
+        var xPos = xScale(start)
+        //console.log(xPos)
+        return xPos
+     })
+     .attr("cy", function(d){
+        var id = d.name;
+        //console.log("#"+id)
+        var yPos = d3.select("#"+id).attr("cy")
+
+        console.log(yPos)
+        return yPos
+     })
+     .attr("fill","blue")
+     .attr("stroke-width",1.5)
+     .attr("stroke","DarkGreen")
+     .on("click",function(d){
+        var tech = document.getElementById("text"+d.i)
+        var techname = "text"+d.i
+        //console.log(tech)
+        var active = tech.active ? false : true,
+        newOpacity = active ? 0 : 1;
+        console.log(active)
+        console.log(newOpacity)
+        //d3.selectAll("#"+tech).style("opacity", newOpacity);
+        d3.selectAll("#"+techname).style("opacity", newOpacity);
+
+        tech.active = active
+        //console.log(tech.active);
+    });
+  });
+};
+
+var data_json = d3.json("paper.json", function(d){
+  length = d[0].parent1;
+  for (i=1;i<=length+1;i++){
+    dataYears(i,endYear);
+  };
+});
+
+
+svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+ 
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height/2 + ")")
+    .call(xAxis);        
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height/2 + ")")
+    .call(xAxis2); 
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height/2 + ")")
+    .call(xAxis3);             
+    </script>
+ 
+</body>
+</html>
